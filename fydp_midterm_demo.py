@@ -197,7 +197,7 @@ def main(_):
         #green_image = tv_utils.fast_overlay(image, street_prediction)
 
         # Show output image.
-        cv2.imshow('lane detection', cv2.cvtColor(rb_image, cv2.COLOR_RGB2BGR))
+        cv2.imshow('lane detection', cv2.cvtColor(rb_image.astype(np.float32) / 255., cv2.COLOR_RGB2BGR))
         cv2.waitKey(1)
 
         '''
