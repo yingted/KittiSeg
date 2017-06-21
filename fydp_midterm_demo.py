@@ -73,6 +73,8 @@ flags.DEFINE_string('logdir', None,
 default_screenshot_script = r'xwd -id "$(xdotool search --name "Google Maps")" | convert xwd:- bmp:-'
 flags.DEFINE_string('screenshot_script', default_screenshot_script,
                     'Image to apply KittiSeg.')
+flags.DEFINE_string('image_slice_expression', 'image[130:-170,:]',
+                    'Slicing to apply to image ("image") for no slicing')
 
 
 default_run = 'KittiSeg_pretrained'
@@ -165,6 +167,8 @@ def main(_):
         # Load and resize input image
         with contextlib.closing(StringIO.StringIO(image_data)) as input_image:
             image = scp.misc.imread(input_image)
+        image = eval(FLAGS.image_slice_expression) # XXX
+
         if hypes['jitter']['reseize_image']:
             # Resize input only, if specified in hypes
             image_height = hypes['jitter']['image_height']
@@ -182,7 +186,7 @@ def main(_):
         output_image = output[0][:, 1].reshape(shape[0], shape[1])
 
         # Plot confidences as red-blue overlay
-        #rb_image = seg.make_overlay(image, output_image)
+        rb_image = seg.make_overlay(image, output_image)
 
         # Accept all pixel with conf >= 0.5 as positive prediction
         # This creates a `hard` prediction result for class street
@@ -190,10 +194,10 @@ def main(_):
         street_prediction = output_image > threshold
 
         # Plot the hard prediction as green overlay
-        green_image = tv_utils.fast_overlay(image, street_prediction)
+        #green_image = tv_utils.fast_overlay(image, street_prediction)
 
-        # Save output images to disk.
-        cv2.imshow('lane detection', green_image)
+        # Show output image.
+        cv2.imshow('lane detection', cv2.cvtColor(rb_image, cv2.COLOR_RGB2BGR))
         cv2.waitKey(1)
 
         '''
